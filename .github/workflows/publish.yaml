@@ -1,0 +1,37 @@
+name: Publish
+
+permissions:
+  pages: write      # to deploy to Pages
+  id-token: write   # to verify the deployment originates from an appropriate source
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Zola
+      run: |
+        mkdir -p bin/
+        curl -Lo zola.tar.gz https://github.com/getzola/zola/releases/download/v0.22.1/zola-v0.22.1-x86_64-unknown-linux-gnu.tar.gz
+        tar xvf zola.tar.gz -C bin
+        echo "$(pwd)/bin" >> $GITHUB_PATH
+        rm zola.tar.gz
+        echo $PATH
+    - name: Build site
+      run: |
+        zola build
+    - name: Upload GitHub Pages artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: public
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+      env:
+        name: github-pages
+        url: ${{ steps.deployment.outputs.page_url }}
